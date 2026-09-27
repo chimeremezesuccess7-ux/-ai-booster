@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>body{background:#0f1423;color:#fff;font-family:sans-serif;padding:16px} .card{background:#1c233a;border-radius:16px;padding:16px;margin-bottom:12px} .stake-btn{padding:10px 14px;margin:4px;background:#161d33;color:#fff;border:1px solid #2a3355;border-radius:8px} .start{width:100%;padding:16px;background:#2a6bff;color:#fff;border:none;border-radius:12px;font-weight:bold}</style>
+</head><body>
+<div class="card">⚡ ENERGY: <b id="energy">0</b> <span id="badge" style="float:right;color:#00ff88;font-size:12px"></span></div>
+<div class="card"><div style="font-size:12px;opacity:.6">Average rate for <span id="pName">AUD/NZD OTC</span></div><h1 id="rate" style="font-size:44px;margin:6px 0">91.6%</h1></div>
+<div class="card"><select id="pair" style="width:100%;padding:12px;background:#161d33;color:#fff;border-radius:8px"><option>AUD/NZD OTC - 92%</option><option>AUD/CAD OTC - 92%</option><option>EUR/USD OTC - 92%</option><option>GBP/USD OTC - 92%</option><option>USD/JPY OTC - 92%</option><option>NZD/USD OTC - 92%</option></select></div>
+<div class="card"><div>Opening stake (USD)</div><div id="stakes"></div></div>
+<button class="start" onclick="alert('TRADE START: Pair '+pair.value+' Stake $'+(window.st||12)+' Rate '+rate.innerText+' 5 sec x 9 trades Recovery ON')">Start trading</button>
+<script>
+const OWNER_ID=7155312343; let uid=0; try{uid=Telegram.WebApp.initDataUnsafe.user.id}catch(e){uid=OWNER_ID}
+let isOwner=uid==OWNER_ID; document.getElementById('badge').innerText=isOwner?'OWNER 1-25 / 85-99%':'USER 1-15 / 85-92%'; document.getElementById('energy').innerText=isOwner?'99999':'0';
+let max=isOwner?25:15; let cont=document.getElementById('stakes'); window.st=12;
+for(let i=1;i<=max;i++){let b=document.createElement('button'); b.className='stake-btn'; b.innerText=i; if(i==12)b.style.border='2px solid #4da3ff'; b.onclick=(e)=>{window.st=i; document.querySelectorAll('.stake-btn').forEach(x=>x.style.border='1px solid #2a3355'); e.target.style.border='2px solid #4da3ff';}; cont.appendChild(b);}
+function upd(){let r=isOwner?(Math.random()*(99-85)+85).toFixed(1):(Math.random()*(92-85)+85).toFixed(1); document.getElementById('rate').innerText=r+'%';} setInterval(upd,8000); upd();
+</script></body></html>
