@@ -1,17 +1,118 @@
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>body{background:#0f1423;color:#fff;font-family:sans-serif;padding:16px} .card{background:#1c233a;border-radius:16px;padding:16px;margin-bottom:12px} .stake-btn{padding:10px 14px;margin:4px;background:#161d33;color:#fff;border:1px solid #2a3355;border-radius:8px} .start{width:100%;padding:16px;background:#2a6bff;color:#fff;border:none;border-radius:12px;font-weight:bold}</style>
-</head><body>
-<div class="card">⚡ ENERGY: <b id="energy">0</b> <span id="badge" style="float:right;color:#00ff88;font-size:12px"></span></div>
-<div class="card"><div style="font-size:12px;opacity:.6">Average rate for <span id="pName">AUD/NZD OTC</span></div><h1 id="rate" style="font-size:44px;margin:6px 0">91.6%</h1></div>
-<div class="card"><select id="pair" style="width:100%;padding:12px;background:#161d33;color:#fff;border-radius:8px"><option>AUD/NZD OTC - 92%</option><option>AUD/CAD OTC - 92%</option><option>EUR/USD OTC - 92%</option><option>GBP/USD OTC - 92%</option><option>USD/JPY OTC - 92%</option><option>NZD/USD OTC - 92%</option></select></div>
-<div class="card"><div>Opening stake (USD)</div><div id="stakes"></div></div>
-<button class="start" onclick="alert('TRADE START: Pair '+pair.value+' Stake $'+(window.st||12)+' Rate '+rate.innerText+' 5 sec x 9 trades Recovery ON')">Start trading</button>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#070a1a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding-bottom:80px}
+.top{display:flex;justify-content:space-between;padding:10px 15px;background:#0e122a}
+.top b{font-size:13px}
+.top span{font-size:11px;opacity:0.6}
+.pill{background:#151a3a;border:1px solid #25306a;border-radius:20px;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:12px}
+.header{display:flex;gap:10px;padding:10px 15px;align-items:center}
+.energy-card{background:#111636;border:1px solid #2a3470;border-radius:12px;padding:10px 15px;display:flex;justify-content:space-between;width:100%;align-items:center}
+.toggle{display:flex;background:#0e122a;border-radius:30px;padding:4px;border:1px solid #25306a;margin:15px}
+.toggle div{flex:1;text-align:center;padding:10px;border-radius:25px;font-weight:700;font-size:14px}
+.active-toggle{background:#dbe4ff;color:#0e122a}
+.balance-card{background:linear-gradient(135deg,#1a234a 0%,#121a36 100%);border:1px solid #2a3470;border-radius:20px;padding:20px;margin:0 15px}
+.big{font-size:32px;font-weight:800;margin:5px 0}
+.stats{display:flex;gap:15px;margin-top:15px}
+.stats div{background:#0e122a;border-radius:12px;padding:10px;flex:1;text-align:center}
+.stats b{color:#5aff8a}
+.start-btn{background:#4a7bff;color:white;width:calc(100% - 30px);margin:15px;border:none;padding:18px;border-radius:15px;font-size:17px;font-weight:700}
+.pocket{background:#111636;border:1px solid #2a3470;border-radius:15px;margin:15px;padding:15px;display:flex;justify-content:space-between;align-items:center}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#0e122a;border-top:1px solid #1e274f;display:flex;justify-content:space-around;padding:10px 0}
+.nav div{text-align:center;font-size:10px;opacity:0.5}
+.nav .active{opacity:1;color:#7a9bff}
+.page{display:none;padding-bottom:20px}
+.page.active{display:block}
+.wheel{width:280px;height:280px;border-radius:50%;background:conic-gradient(#1a2a6a 0% 14%,#2a3a8a 14% 28%,#1a2a6a 28% 42%,#2a3a8a 42% 56%,#1a2a6a 56% 70%,#2a3a8a 70% 84%,#1a2a6a 84% 100%);border:6px solid #2a3a8a;margin:20px auto;position:relative;display:flex;align-items:center;justify-content:center}
+.leader{display:flex;justify-content:space-between;padding:12px 15px;border-bottom:1px solid #1a234a;font-size:13px}
+.ref-card{background:#111636;border-radius:15px;padding:15px;margin:15px;border:1px solid #2a3470}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top">
+<div class="pill"><span style="width:10px;height:10px;background:#00ff88;border-radius:50%;display:inline-block"></span><div><div>Demo Balance</div><b id="demoBal">$52,038.92</b></div></div>
+<div class="pill"><span style="width:10px;height:10px;background:#00ff88;border-radius:50%;display:inline-block"></span><div><div>Real Balance</div><b>$0.00</b></div></div>
+<div class="pill">⚡ Energy <b id="energyTop">50</b></div>
+</div>
+
+<div class="header">
+<div class="energy-card"><div>⚡ ENERGY REFRESH<br><b>+100 Energy</b></div><div id="timer">23:58:43</div></div>
+</div>
+
+<!-- PAGES -->
+<div id="tradePage" class="page active">
+<div class="toggle"><div class="active-toggle">DEMO MODE</div><div>REAL MODE</div></div>
+<div class="balance-card">
+<div style="font-size:12px;opacity:0.6">Your demo balance</div>
+<div class="big" id="bigBal">$52,038.92</div>
+<div class="stats">
+<div><span>All time profit</span><br><b>+$1,449.9%</b></div>
+<div><span>Trades</span><br><b>366</b></div>
+<div><span>Win rate</span><br><b id="winRate">48%</b></div>
+</div>
+</div>
+<button class="start-btn" onclick="sendSignalToPocket()">Start Trading<br><span style="font-size:11px;font-weight:400;opacity:0.8">Trade cost: Free once a day</span></button>
+<div class="pocket" onclick="alert('Opening Pocket Option...')"><div>📘 Pocket Options<br><span style="font-size:11px;opacity:0.6">View your transactions live on Pocket Option</span></div><div>></div></div>
+<div style="padding:0 15px;margin-top:20px;font-weight:700">Personal Manager</div>
+</div>
+
+<div id="referralPage" class="page">
+<div class="ref-card"><h3>Invite Friends And Earn Energy</h3><p style="font-size:12px;opacity:0.6">Share your invite link, bring new traders into the app, and track every energy reward inside one flow.</p><div style="display:flex;gap:10px;margin-top:15px"><div style="flex:1;background:#0e122a;padding:10px;border-radius:10px;text-align:center"><b>1</b><br><span style="font-size:11px">TOTAL INVITED</span></div><div style="flex:1;background:#0e122a;padding:10px;border-radius:10px;text-align:center"><b>50</b><br><span style="font-size:11px">TOTAL EARNED</span></div></div><button style="width:100%;margin-top:15px;background:#4a7bff;border:none;padding:12px;border-radius:10px;color:white">Copy Link</button></div>
+</div>
+
+<div id="wheelPage" class="page">
+<h3 style="text-align:center">Spin The Wheel And Win<br>Prizes For 100 Energy</h3>
+<div class="wheel"><button style="background:#ff4d4d;border:none;padding:15px 20px;border-radius:10px;color:white;font-weight:700">ADD ENERGY TO SPIN</button></div>
+<div style="text-align:center;opacity:0.6;font-size:12px">Next Free Spin<br>23:58:30</div>
+</div>
+
+<div id="profilePage" class="page">
+<div class="ref-card" style="display:flex;align-items:center;gap:10px"><img src="https://i.pravatar.cc/40" style="border-radius:50%"><div><b>Success</b><br><span style="font-size:11px;opacity:0.6">ID: 7155312343</span></div><div style="margin-left:auto"><button style="background:#1a234a;border:none;color:white;padding:5px 10px;border-radius:15px;font-size:11px">Settings</button></div></div>
+<div class="pocket"><div>Pocket Options<br><span style="font-size:11px;opacity:0.6">View account credentials</span></div></div>
+<button style="width:calc(100% - 30px);margin:0 15px;background:#ff3b3b;border:none;padding:15px;border-radius:12px;color:white;font-weight:700">Top Up Balance</button>
+<div style="padding:15px"><b>Leaderboard</b><br><span style="font-size:11px;opacity:0.6">Top traders from the last 7 days ranked by profit, trade activity, and win rate.</span></div>
+<div class="leader"><span>#1 User - 7 trades</span><b>100% +$950,628.3</b></div>
+<div class="leader"><span>#2 User - 3 trades</span><b>100% +$33,120.17</b></div>
+<div class="leader"><span>#3 CheryIbybo - 17 trades</span><b>100% +$7,038.45</b></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="nav">
+<div onclick="showPage('referralPage',this)"><div>👥</div>Referral</div>
+<div onclick="showPage('wheelPage',this)"><div>🎡</div>Wheel</div>
+<div class="active" onclick="showPage('tradePage',this)"><div>📈</div>Trade</div>
+<div onclick="showPage('profilePage',this)"><div>👤</div>Profile</div>
+</div>
+
 <script>
-const OWNER_ID=7155312343; let uid=0; try{uid=Telegram.WebApp.initDataUnsafe.user.id}catch(e){uid=OWNER_ID}
-let isOwner=uid==OWNER_ID; document.getElementById('badge').innerText=isOwner?'OWNER 1-25 / 85-99%':'USER 1-15 / 85-92%'; document.getElementById('energy').innerText=isOwner?'99999':'0';
-let max=isOwner?25:15; let cont=document.getElementById('stakes'); window.st=12;
-for(let i=1;i<=max;i++){let b=document.createElement('button'); b.className='stake-btn'; b.innerText=i; if(i==12)b.style.border='2px solid #4da3ff'; b.onclick=(e)=>{window.st=i; document.querySelectorAll('.stake-btn').forEach(x=>x.style.border='1px solid #2a3355'); e.target.style.border='2px solid #4da3ff';}; cont.appendChild(b);}
-function upd(){let r=isOwner?(Math.random()*(99-85)+85).toFixed(1):(Math.random()*(92-85)+85).toFixed(1); document.getElementById('rate').innerText=r+'%';} setInterval(upd,8000); upd();
-</script></body></html>
+const OWNER_ID=7155312343;
+let uid=0; try{uid=window.Telegram?.WebApp?.initDataUnsafe?.user?.id||0}catch(e){}
+let isOwner=uid==OWNER_ID;
+let selectedStake=1;
+
+function showPage(id,el){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav div').forEach(d=>d.classList.remove('active'));
+ el.classList.add('active');
+}
+let t=23*3600+58*60+43;
+setInterval(()=>{t--;let h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('timer').innerText=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s},1000);
+
+function sendSignalToPocket(){
+ let pair=document.getElementById('pair')?document.getElementById('pair').value:'NZD/USD OTC - 92%';
+ let dir=Math.random()>0.5?'UP':'DOWN';
+ let data={type:"BOOSTER_SIGNAL",pair:pair,direction:dir,stake:selectedStake,time:new Date().toLocaleTimeString()};
+ localStorage.setItem("booster_last_signal",JSON.stringify(data));
+ alert("✅ SIGNAL SENT: "+pair+" "+dir+" $"+selectedStake+"\n\nTrade: Free once a day - Approved!");
+ if(isOwner){document.getElementById('bigBal').innerText='$'+(52038+Math.random()*100).toFixed(2); document.getElementById('demoBal').innerText=document.getElementById('bigBal').innerText}
+}
+</script>
+</body>
+</html>
