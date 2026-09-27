@@ -28,7 +28,6 @@
 .page{display:none}.page.active{display:block}
 .ref-card{background:#111636;border-radius:15px;padding:15px;margin:15px;border:1px solid #2a3470}
 .owner-badge{background:gold;color:#000;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:800;margin-left:6px}
-.wheel{width:260px;height:260px;border-radius:50%;margin:20px auto;border:6px solid #2a3a8a;background:conic-gradient(#1a2a6a 0% 20%,#2a3a8a 20% 40%,#1a2a6a 40% 60%,#2a3a8a 60% 80%,#1a2a6a 80% 100%);display:flex;align-items:center;justify-content:center}
 .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:15px}
 .modal.show{display:flex}
 .modal-box{background:#111636;border:1px solid #2a3470;border-radius:20px;padding:20px;width:100%;max-width:380px;max-height:90vh;overflow:auto}
@@ -40,26 +39,125 @@
 </style>
 </head>
 <body>
-
 <div id="notif" class="notif">Deposit opened. Return after the balance and Energy are credited.</div>
-
 <div class="top">
 <div class="pill active-pill" id="demoPill" onclick="setMode('demo')">💚<div><div style="opacity:.6;font-size:8px">Demo Balance</div><b id="demoBal">$52,205.72</b></div></div>
 <div class="pill" id="realPill" onclick="setMode('real')">💚<div><div style="opacity:.6;font-size:8px">Real Balance</div><b id="realBal">$0.00</b></div></div>
 <div class="pill" id="tournamentPill" onclick="setMode('tournament')">🏆<div><div style="opacity:.6;font-size:8px">Tournament</div><b id="tournamentBal">T100</b></div></div>
 <div class="pill">⚡ <b id="energyTop">100</b><span id="ownerBadge"></span></div>
 </div>
-
 <div id="energyRefreshWrap" style="padding:10px 15px"><div class="energy-card"><div><b>⚡ ENERGY REFRESH</b><br><span id="energyText" style="font-size:11px">You have 100 Energy (20 trades)</span></div><div id="timer" style="font-weight:700">23:59:59</div></div></div>
-
 <div id="tradePage" class="page active">
 <div class="toggle">
 <div id="demoToggle" class="active-toggle" onclick="setMode('demo')">DEMO MODE</div>
 <div id="realToggle" onclick="setMode('real')">REAL MODE</div>
 <div id="tournamentToggle" onclick="setMode('tournament')">TOURNAMENT</div>
 </div>
-
 <div class="balance-card"><div style="font-size:11px;opacity:.6" id="balLabel">Your demo balance</div><div class="big" id="bigBal">$52,205.72</div><div class="stats"><div>All-time profit<br><b>+$1,549.3%</b></div><div>Trades<br><b id="tradeCount">400</b></div><div>Win rate<br><b>48%</b></div></div>
 <div id="lowBalBox" style="display:none;background:#2a1a1a;border:1px solid #5a2a2a;border-radius:10px;padding:10px;margin-top:15px;font-size:11px"><div style="display:flex;justify-content:space-between"><span>BALANCE TOO LOW</span><b id="lowBal">$0.00</b></div><div style="opacity:.7;margin-top:5px">You have $0.00 available, but even the smallest opening stake needs $3.00</div><button onclick="openDepositModal()" style="width:100%;margin-top:10px;background:#4a7bff;border:none;padding:10px;border-radius:10px;color:#fff;font-weight:700">Open deposit</button></div>
 <div id="tournamentBox" style="display:none;background:#1a234a;border:1px solid #2a4a7a;border-radius:10px;padding:10px;margin-top:15px;font-size:11px"></div>
 </div>
+<div style="padding:0 15px;margin-top:15px;font-weight:700;font-size:12px">Opening stake (USD) <span id="ownerBadge2"></span></div>
+<div class="stakes" id="stakeContainer"></div>
+<button class="start-btn" id="startBtn" onclick="startTrading()">Start Trading<br><span style="font-size:10px" id="costText">Trade cost: 5 Energy (20 trades left)</span></button>
+<div class="pocket" onclick="openPocket()"><div>📘 Pocket Options<br><span style="font-size:10px;opacity:.6">View your transactions live on Pocket Option</span></div><div>></div></div>
+</div>
+<div id="referralPage" class="page"><div class="ref-card"><h3>Invite +100 Energy</h3><p style="font-size:11px;opacity:.6">Each friend = 100 Energy. 5 Energy per trade = 20 trades</p><button onclick="copyRef()" style="width:100%;margin-top:15px;background:#4a7bff;border:none;padding:12px;border-radius:10px;color:#fff">Copy Link</button></div></div>
+<div id="wheelPage" class="page"><h3 style="text-align:center">Spin The Wheel<br><span id="spinCost">100 Energy</span></h3><div class="wheel" style="width:260px;height:260px;border-radius:50%;margin:20px auto;border:6px solid #2a3a8a;background:conic-gradient(#1a2a6a 0% 20%,#2a3a8a 20% 40%,#1a2a6a 40% 60%,#2a3a8a 60% 80%,#1a2a6a 80% 100%);display:flex;align-items:center;justify-content:center"><button id="spinBtn" onclick="spinWheel()" style="background:#ff4d4d;border:none;padding:12px 18px;border-radius:10px;color:#fff;font-weight:700">SPIN</button></div></div>
+<div id="profilePage" class="page">
+<div style="padding:15px;display:flex;justify-content:space-between"><h3>Settings</h3><span onclick="showPage('tradePage',document.querySelectorAll('.nav div')[2])" style="cursor:pointer">✕</span></div>
+<div class="ref-card" style="display:flex;gap:10px;align-items:center" onclick="openPocketAccountModal()"><img src="https://i.pravatar.cc/40" style="border-radius:50%"><div style="flex:1"><b>Success <span id="ownerBadge3"></span></b><br><span style="font-size:10px;opacity:.6">ID: <span id="userIdText">139333988</span> - SAME AS POCKET</span></div><div>⚙️</div></div>
+<div class="ref-card" onclick="openPocketAccountModal()" style="cursor:pointer"><div style="display:flex;justify-content:space-between"><b>📘 Pocket Options</b><span>></span></div><span style="font-size:10px;opacity:.6">View account credentials - Same ID 139333988</span></div>
+<div style="padding:0 15px"><button onclick="openDepositModal()" style="width:100%;background:#151a3a;border:1px solid #2a3470;padding:12px;border-radius:12px;color:#fff">Top Up Balance</button></div>
+<div class="ref-card" style="display:flex;justify-content:space-between;align-items:center"><div>🇺🇸 Washington <span style="font-size:10px;opacity:.6">• 271 ping</span></div><div style="width:8px;height:8px;background:red;border-radius:50%"></div></div>
+<button onclick="logoutAll()" style="width:calc(100% - 30px);margin:0 15px 20px 15px;background:transparent;border:1px solid #ff3b3b;padding:12px;border-radius:12px;color:#ff3b3b;font-weight:700">Logout</button>
+</div>
+<div id="depositModal" class="modal" onclick="if(event.target==this)closeDepositModal()"><div class="modal-box"><div style="display:flex;justify-content:space-between"><h3 style="margin:0">Top Up Balance</h3><span onclick="closeDepositModal()" style="cursor:pointer">✕</span></div><div style="margin-top:12px"><b>TRADING BALANCE</b><br><div class="big" id="modalBal">$0.00</div></div><div style="margin-top:12px"><b>DEPOSIT TIERS</b></div><div class="tier-grid"><div class="tier" onclick="selectTier(this,10)"><b>$10+</b><br>50 ⚡</div><div class="tier" onclick="selectTier(this,50)"><b>$50+</b><br>300 ⚡</div><div class="tier" onclick="selectTier(this,100)"><b>$100+</b><br>600 ⚡</div><div class="tier" onclick="selectTier(this,300)"><b>$300+</b><br>1900 ⚡</div><div class="tier" onclick="selectTier(this,500)"><b>$500+</b><br>3200 ⚡</div><div class="tier" onclick="selectTier(this,1000)"><b>$1000+</b><br>6500 ⚡</div></div><button onclick="goToPocketDeposit()" style="width:100%;background:#4a7bff;border:none;padding:14px;border-radius:12px;color:#fff;font-weight:700">Open deposit</button></div></div>
+<div id="pocketAccountModal" class="modal" onclick="if(event.target==this)closePocketAccountModal()"><div class="modal-box"><div style="display:flex;justify-content:space-between"><h3>Pocket Account</h3><span onclick="closePocketAccountModal()" style="cursor:pointer">✕</span></div><div id="loggedInView"><div style="background:#0e122a;border-radius:10px;padding:10px;margin-top:12px"><div style="display:flex;justify-content:space-between"><span style="font-size:10px;opacity:.6">Email</span><span onclick="copyText(document.getElementById('pEmail').innerText)" style="font-size:9px;color:#4a7bff;cursor:pointer">📋 COPY</span></div><b id="pEmail" style="font-size:12px">godgiftsuccess658@gmail.com</b></div><div style="background:#0e122a;border-radius:10px;padding:10px;margin-top:8px"><div style="display:flex;justify-content:space-between"><span style="font-size:10px;opacity:.6">Password</span><span style="font-size:9px;color:#4a7bff">📋 COPY</span></div><b id="pPass" style="font-size:12px" onclick="this.innerText=this.innerText=='••••••••'?'Success123!':'••••••••'">Tap to reveal</b></div><div style="background:#1a1a2a;border-radius:10px;padding:10px;margin-top:8px"><span style="font-size:10px;opacity:.6">Pocket Option ID - SAME AS POCKET</span><br><b id="pId">139333988</b></div><button onclick="openPocketCabinet()" style="width:100%;margin-top:12px;background:#4a7bff;border:none;padding:12px;border-radius:12px;color:#fff;font-weight:700">Open Pocket cabinet</button><button onclick="logoutPocket()" style="width:100%;margin-top:8px;background:transparent;border:1px solid #ff3b3b;padding:12px;border-radius:12px;color:#ff3b3b">Logout - Login another Pocket account</button></div><div id="loggedOutView" style="display:none"><div style="margin-top:12px"><input id="loginEmail" placeholder="Pocket Option Email" style="width:100%;padding:10px;border-radius:8px;background:#0e122a;border:1px solid #2a3470;color:#fff;margin-bottom:8px"><input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:10px;border-radius:8px;background:#0e122a;border:1px solid #2a3470;color:#fff;margin-bottom:8px"><input id="loginId" placeholder="Pocket Option ID" style="width:100%;padding:10px;border-radius:8px;background:#0e122a;border:1px solid #2a3470;color:#fff"><button onclick="loginPocket()" style="width:100%;margin-top:12px;background:#4a7bff;border:none;padding:12px;border-radius:12px;color:#fff;font-weight:700">Login Pocket Account</button></div></div></div></div>
+<div class="nav">
+<div onclick="showPage('referralPage',this)">👥<br>Referral</div>
+<div onclick="showPage('wheelPage',this)">🎡<br>Wheel</div>
+<div class="active" onclick="showPage('tradePage',this)">📈<br>Trade</div>
+<div onclick="showPage('profilePage',this)">👤<br>Profile</div>
+</div>
+<script>
+const OWNER_ID=7155312343;let tgUser=OWNER_ID;try{tgUser=Telegram.WebApp.initDataUnsafe?.user?.id||OWNER_ID}catch(e){}
+let isOwner=(tgUser==OWNER_ID);if(location.hostname.includes('vercel')||location.hostname.includes('localhost')||location.hostname.includes('ngrok')) isOwner=true;
+let mode='demo';let balances={demo:52205.72,real:0,tournament:100};let selectedStake=3,trades=400,selectedDeposit=0;
+let energy=100,lastEmptyTime=0;
+try{let s=JSON.parse(localStorage.getItem('booster_balances')||'null');if(s)balances={...balances,...s};let sm=localStorage.getItem('booster_mode');if(sm)mode=sm;let se=localStorage.getItem('booster_energy');if(se!==null)energy=parseInt(se);let sem=localStorage.getItem('booster_empty_time');if(sem)lastEmptyTime=parseInt(sem);}catch(e){}
+let pocketAccount=JSON.parse(localStorage.getItem('pocket_account')||'null')||{email:'godgiftsuccess658@gmail.com',password:'••••••••',id:'139333988',loggedIn:true};
+function renderOwner(){if(isOwner){document.getElementById('energyTop').innerText='∞';document.getElementById('energyRefreshWrap').style.display='none';document.getElementById('ownerBadge').innerHTML='<span class="owner-badge">OWNER</span>';document.getElementById('ownerBadge2').innerHTML='<span class="owner-badge">OWNER 1-25 ♾️</span>';document.getElementById('ownerBadge3').innerHTML='<span class="owner-badge">OWNER</span>';}else{document.getElementById('energyTop').innerText=energy;document.getElementById('energyRefreshWrap').style.display='block';updateEnergyUI();}}
+function updateEnergyUI(){if(isOwner)return;document.getElementById('energyText').innerText=energy>0?'You have '+energy+' Energy ('+Math.floor(energy/5)+' trades)':'No Energy - Refresh in 24h';}
+function renderStakes(){const c=document.getElementById('stakeContainer');c.innerHTML='';let max=isOwner?25:15;let min=isOwner?1:3;for(let i=min;i<=max;i++){let d=document.createElement('div');d.className='stake'+(i==selectedStake?' active':'');d.innerText='$'+i;d.onclick=()=>{selectedStake=i;renderStakes();checkLowBal();};c.appendChild(d);}}
+function showPage(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav div').forEach(d=>d.classList.remove('active'));el.classList.add('active');}
+function setMode(m){
+ mode=m;localStorage.setItem('booster_mode',m);localStorage.setItem('booster_desired_mode',m);localStorage.setItem('booster_should_switch',Date.now().toString());
+ document.getElementById('demoToggle').className=m=='demo'?'active-toggle':'';document.getElementById('realToggle').className=m=='real'?'active-toggle':'';document.getElementById('tournamentToggle').className=m=='tournament'?'active-toggle':'';
+ document.getElementById('demoPill').className=m=='demo'?'pill active-pill':'pill';document.getElementById('realPill').className=m=='real'?'pill active-pill':'pill';document.getElementById('tournamentPill').className=m=='tournament'?'pill active-pill':'pill';
+ document.getElementById('balLabel').innerText=m=='demo'?'Your demo balance':m=='real'?'Your real balance':'Your tournament balance';
+ document.getElementById('bigBal').innerText=(m=='tournament'?'T':'$')+balances[m].toFixed(2);
+ if(m=='tournament'){
+   let noTour=localStorage.getItem('booster_no_tournament');
+   if(noTour=='true'){
+     document.getElementById('tournamentBox').innerHTML='❌ You haven\'t joined any tournaments yet<br><span style="opacity:.7">Go to Pocket → Tournaments → Join Day off (Free $250)</span><br><button onclick="window.open(\'https://m.pocketoption.com/en/cabinet/tournaments/\',\'_blank\')" style="margin-top:8px;background:#4a7bff;border:none;padding:8px 12px;border-radius:8px;color:#fff;font-size:11px">Join Tournament</button>';
+     document.getElementById('tournamentBox').style.display='block';
+     document.getElementById('startBtn').disabled=true;
+     document.getElementById('startBtn').innerHTML='No Tournament Joined<br><span style="font-size:10px">Join one first</span>';
+     return;
+   } else {
+     document.getElementById('tournamentBox').innerHTML='🏆 Tournament: T'+balances.tournament+' - Prize $250<br><span style="opacity:.7">Auto trades Tournament account</span>';
+     document.getElementById('tournamentBox').style.display='block';
+     document.getElementById('startBtn').disabled=false;
+   }
+ }
+ checkLowBal();
+}
+function checkLowBal(){
+ let box=document.getElementById('lowBalBox');let tbox=document.getElementById('tournamentBox');let btn=document.getElementById('startBtn');
+ box.style.display='none';
+ if(mode=='real' && balances.real < selectedStake){box.style.display='block';document.getElementById('lowBal').innerText='$'+balances.real.toFixed(2);document.getElementById('modalBal').innerText='$'+balances.real.toFixed(2);btn.disabled=true;btn.innerHTML='Balance Too Low<br><span style="font-size:10px">Open deposit</span>';}
+ else if(mode!='tournament'){tbox.style.display='none';btn.disabled=false;btn.innerHTML='Start Trading<br><span style="font-size:10px">'+(isOwner?'FREE ♾️ OWNER':'5 Energy ('+Math.floor(energy/5)+' trades)')+'</span>';}
+ if(mode=='tournament' && localStorage.getItem('booster_no_tournament')!='true'){btn.disabled=false;btn.innerHTML='Start Trading Tournament<br><span style="font-size:10px">'+(isOwner?'FREE ♾️':'5 Energy - Real tournament')+'</span>';}
+ if(!isOwner)updateEnergyUI();
+}
+function startTrading(){
+ const COST=5;
+ if(!isOwner){
+  if(energy < COST){alert('Need 5 Energy per trade');return;}
+  if(mode=='real' && balances.real < selectedStake){openDepositModal();return;}
+  let noTour=localStorage.getItem('booster_no_tournament');
+  if(mode=='tournament' && noTour=='true'){alert('You haven\'t joined any tournaments yet');window.open('https://m.pocketoption.com/en/cabinet/tournaments/','_blank');return;}
+  if(mode=='tournament' && balances.tournament <=0){alert('Tournament not started');return;}
+  energy-=COST;localStorage.setItem('booster_energy',energy);
+  if(energy==0){lastEmptyTime=Date.now();localStorage.setItem('booster_empty_time',lastEmptyTime);}
+ }
+ trades++;document.getElementById('tradeCount').innerText=trades;
+ localStorage.setItem('booster_balances',JSON.stringify(balances));
+ let pairs=["EUR/USD OTC - 92%","NZD/USD OTC - 92%","GBP/USD OTC - 90%","BTC/USD OTC - 85%"];
+ let pair=pairs[Math.floor(Math.random()*pairs.length)];let dir=Math.random()>0.5?'UP':'DOWN';
+ localStorage.setItem("booster_last_signal",JSON.stringify({pair,direction:dir,stake:selectedStake,mode:mode,_time:Date.now(),_executed:false}));
+ if(!isOwner)updateEnergyUI();checkLowBal();
+ alert(`✅ REAL SIGNAL (${mode.toUpperCase()})\n${pair}\n${dir} $${selectedStake}\nPocket will switch to ${mode} and trade real`);
+}
+function spinWheel(){if(!isOwner && energy<100){alert('Need 100 Energy');return;}if(!isOwner){energy-=100;localStorage.setItem('booster_energy',energy);if(energy==0){lastEmptyTime=Date.now();localStorage.setItem('booster_empty_time',lastEmptyTime);}updateEnergyUI();}alert('🎉 Spin!');}
+function openPocket(){window.open('https://m.pocketoption.com/en/cabinet/demo-quick-high-low/','_blank');}
+function copyRef(){navigator.clipboard.writeText('https://t.me/Ai_booster_bot?start='+tgUser);alert('Copied!');}
+function openDepositModal(){document.getElementById('depositModal').classList.add('show');document.getElementById('modalBal').innerText='$'+balances.real.toFixed(2);}
+function closeDepositModal(){document.getElementById('depositModal').classList.remove('show');}
+function selectTier(el,val){document.querySelectorAll('.tier').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');selectedDeposit=val;}
+function goToPocketDeposit(){closeDepositModal();document.getElementById('notif').classList.add('show');setTimeout(()=>document.getElementById('notif').classList.remove('show'),4000);window.open('https://m.pocketoption.com/en/cabinet/deposit/','_blank');}
+function openPocketAccountModal(){document.getElementById('pocketAccountModal').classList.add('show');document.getElementById('loggedInView').style.display='block';document.getElementById('loggedOutView').style.display='none';}
+function closePocketAccountModal(){document.getElementById('pocketAccountModal').classList.remove('show');}
+function openPocketCabinet(){window.open('https://m.pocketoption.com/en/cabinet/','_blank');}
+function copyText(t){navigator.clipboard.writeText(t);alert('Copied');}
+function logoutPocket(){if(confirm('Logout?')){pocketAccount.loggedIn=false;localStorage.setItem('pocket_account',JSON.stringify(pocketAccount));closePocketAccountModal();}}
+function loginPocket(){let e=document.getElementById('loginEmail').value;let id=document.getElementById('loginId').value||'139333988';if(!e){alert('Enter email');return;}pocketAccount={email:e,id:id,loggedIn:true};localStorage.setItem('pocket_account',JSON.stringify(pocketAccount));closePocketAccountModal();}
+function logoutAll(){if(confirm('Logout?')){localStorage.clear();location.reload();}}
+function syncRealBalances(){try{let d=localStorage.getItem('booster_demo');let r=localStorage.getItem('booster_real');let t=localStorage.getItem('booster_tournament');let sid=localStorage.getItem('booster_pocket_id');if(d)balances.demo=parseFloat(d);if(r)balances.real=parseFloat(r);if(t)balances.tournament=parseFloat(t);if(sid){document.getElementById('pId').innerText=sid;document.getElementById('userIdText').innerText=sid;}updateUI();}catch(e){}}
+function updateUI(){document.getElementById('demoBal').innerText='$'+balances.demo.toFixed(2);document.getElementById('realBal').innerText='$'+balances.real.toFixed(2);document.getElementById('tournamentBal').innerText='T'+balances.tournament.toFixed(0);document.getElementById('bigBal').innerText=(mode=='tournament'?'T':'$')+balances[mode].toFixed(2);}
+setInterval(()=>{if(energy<=0 && lastEmptyTime>0){let diff=Date.now()-lastEmptyTime;let remain=24*3600*1000-diff;if(remain<=0){energy=100;lastEmptyTime=0;localStorage.setItem('booster_energy',energy);localStorage.removeItem('booster_empty_time');document.getElementById('energyTop').innerText=energy;updateEnergyUI();document.getElementById('timer').innerText='Ready!';}else{let h=Math.floor(remain/3600000),m=Math.floor((remain%3600000)/60000),s=Math.floor((remain%60000)/1000);document.getElementById('timer').innerText=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;}}syncRealBalances();},1500);
+renderOwner();renderStakes();setMode(mode);updateUI();checkLowBal();
+</script>
+</body>
+</html>
