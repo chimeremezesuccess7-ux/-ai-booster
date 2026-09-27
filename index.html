@@ -1,118 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#070a1a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding-bottom:80px}
-.top{display:flex;justify-content:space-between;padding:10px 15px;background:#0e122a}
-.top b{font-size:13px}
-.top span{font-size:11px;opacity:0.6}
-.pill{background:#151a3a;border:1px solid #25306a;border-radius:20px;padding:6px 12px;display:flex;align-items:center;gap:6px;font-size:12px}
-.header{display:flex;gap:10px;padding:10px 15px;align-items:center}
+*{box-sizing:border-box}body{margin:0;background:#070a1a;color:#fff;font-family:sans-serif;padding-bottom:90px}
+.top{display:flex;justify-content:space-between;padding:8px;background:#0e122a;gap:4px}
+.pill{background:#151a3a;border:1px solid #25306a;border-radius:14px;padding:6px 8px;display:flex;gap:5px;font-size:10px;align-items:center;flex:1;cursor:pointer}
+.pill.active-pill{border-color:#4a7bff;background:#1a234a}
 .energy-card{background:#111636;border:1px solid #2a3470;border-radius:12px;padding:10px 15px;display:flex;justify-content:space-between;width:100%;align-items:center}
-.toggle{display:flex;background:#0e122a;border-radius:30px;padding:4px;border:1px solid #25306a;margin:15px}
-.toggle div{flex:1;text-align:center;padding:10px;border-radius:25px;font-weight:700;font-size:14px}
+.toggle{display:flex;background:#0e122a;border-radius:30px;padding:4px;border:1px solid #25306a;margin:12px 15px}
+.toggle div{flex:1;text-align:center;padding:10px 5px;border-radius:25px;font-weight:700;font-size:11px;cursor:pointer}
 .active-toggle{background:#dbe4ff;color:#0e122a}
-.balance-card{background:linear-gradient(135deg,#1a234a 0%,#121a36 100%);border:1px solid #2a3470;border-radius:20px;padding:20px;margin:0 15px}
-.big{font-size:32px;font-weight:800;margin:5px 0}
-.stats{display:flex;gap:15px;margin-top:15px}
-.stats div{background:#0e122a;border-radius:12px;padding:10px;flex:1;text-align:center}
-.stats b{color:#5aff8a}
-.start-btn{background:#4a7bff;color:white;width:calc(100% - 30px);margin:15px;border:none;padding:18px;border-radius:15px;font-size:17px;font-weight:700}
+.balance-card{background:linear-gradient(135deg,#1a234a,#121a36);border:1px solid #2a3470;border-radius:20px;padding:20px;margin:0 15px}
+.big{font-size:30px;font-weight:800}
+.stats{display:flex;gap:8px;margin-top:15px}
+.stats div{background:#0e122a;border-radius:12px;padding:10px;flex:1;text-align:center;font-size:11px}
+.stats b{color:#5aff8a;font-size:12px}
+.start-btn{background:#4a7bff;color:#fff;width:calc(100% - 30px);margin:15px;border:none;padding:18px;border-radius:15px;font-size:17px;font-weight:700}
+.start-btn:disabled{opacity:.5;background:#2a2a3a}
 .pocket{background:#111636;border:1px solid #2a3470;border-radius:15px;margin:15px;padding:15px;display:flex;justify-content:space-between;align-items:center}
-.nav{position:fixed;bottom:0;left:0;right:0;background:#0e122a;border-top:1px solid #1e274f;display:flex;justify-content:space-around;padding:10px 0}
-.nav div{text-align:center;font-size:10px;opacity:0.5}
-.nav .active{opacity:1;color:#7a9bff}
-.page{display:none;padding-bottom:20px}
-.page.active{display:block}
-.wheel{width:280px;height:280px;border-radius:50%;background:conic-gradient(#1a2a6a 0% 14%,#2a3a8a 14% 28%,#1a2a6a 28% 42%,#2a3a8a 42% 56%,#1a2a6a 56% 70%,#2a3a8a 70% 84%,#1a2a6a 84% 100%);border:6px solid #2a3a8a;margin:20px auto;position:relative;display:flex;align-items:center;justify-content:center}
-.leader{display:flex;justify-content:space-between;padding:12px 15px;border-bottom:1px solid #1a234a;font-size:13px}
+.stakes{display:flex;flex-wrap:wrap;gap:6px;padding:0 15px;margin-top:10px}
+.stake{padding:7px 12px;border-radius:20px;background:#0e122a;border:1px solid #2a3470;font-size:12px;cursor:pointer}
+.stake.active{background:#4a7bff;border-color:#4a7bff;font-weight:700}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#0e122a;border-top:1px solid #1e274f;display:flex;justify-content:space-around;padding:10px 0;z-index:100}
+.nav div{text-align:center;font-size:10px;opacity:.5;cursor:pointer}.nav div.active{opacity:1;color:#7a9bff}
+.page{display:none}.page.active{display:block}
 .ref-card{background:#111636;border-radius:15px;padding:15px;margin:15px;border:1px solid #2a3470}
+.owner-badge{background:gold;color:#000;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:800;margin-left:6px}
+.wheel{width:260px;height:260px;border-radius:50%;margin:20px auto;border:6px solid #2a3a8a;background:conic-gradient(#1a2a6a 0% 20%,#2a3a8a 20% 40%,#1a2a6a 40% 60%,#2a3a8a 60% 80%,#1a2a6a 80% 100%);display:flex;align-items:center;justify-content:center}
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:15px}
+.modal.show{display:flex}
+.modal-box{background:#111636;border:1px solid #2a3470;border-radius:20px;padding:20px;width:100%;max-width:380px;max-height:90vh;overflow:auto}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:15px 0}
+.tier{background:#0e122a;border:1px solid #25306a;border-radius:12px;padding:10px;text-align:center;cursor:pointer;font-size:12px}
+.tier.selected{border-color:#4a7bff;background:#1a234a}
+.notif{background:#1a3a2a;border:1px solid #2a7a4a;padding:10px;border-radius:10px;margin:10px 15px;font-size:12px;display:none}
+.notif.show{display:block}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
+<div id="notif" class="notif">Deposit opened. Return after the balance and Energy are credited.</div>
+
 <div class="top">
-<div class="pill"><span style="width:10px;height:10px;background:#00ff88;border-radius:50%;display:inline-block"></span><div><div>Demo Balance</div><b id="demoBal">$52,038.92</b></div></div>
-<div class="pill"><span style="width:10px;height:10px;background:#00ff88;border-radius:50%;display:inline-block"></span><div><div>Real Balance</div><b>$0.00</b></div></div>
-<div class="pill">⚡ Energy <b id="energyTop">50</b></div>
+<div class="pill active-pill" id="demoPill" onclick="setMode('demo')">💚<div><div style="opacity:.6;font-size:8px">Demo Balance</div><b id="demoBal">$52,205.72</b></div></div>
+<div class="pill" id="realPill" onclick="setMode('real')">💚<div><div style="opacity:.6;font-size:8px">Real Balance</div><b id="realBal">$0.00</b></div></div>
+<div class="pill" id="tournamentPill" onclick="setMode('tournament')">🏆<div><div style="opacity:.6;font-size:8px">Tournament</div><b id="tournamentBal">T100</b></div></div>
+<div class="pill">⚡ <b id="energyTop">100</b><span id="ownerBadge"></span></div>
 </div>
 
-<div class="header">
-<div class="energy-card"><div>⚡ ENERGY REFRESH<br><b>+100 Energy</b></div><div id="timer">23:58:43</div></div>
-</div>
+<div id="energyRefreshWrap" style="padding:10px 15px"><div class="energy-card"><div><b>⚡ ENERGY REFRESH</b><br><span id="energyText" style="font-size:11px">You have 100 Energy (20 trades)</span></div><div id="timer" style="font-weight:700">23:59:59</div></div></div>
 
-<!-- PAGES -->
 <div id="tradePage" class="page active">
-<div class="toggle"><div class="active-toggle">DEMO MODE</div><div>REAL MODE</div></div>
-<div class="balance-card">
-<div style="font-size:12px;opacity:0.6">Your demo balance</div>
-<div class="big" id="bigBal">$52,038.92</div>
-<div class="stats">
-<div><span>All time profit</span><br><b>+$1,449.9%</b></div>
-<div><span>Trades</span><br><b>366</b></div>
-<div><span>Win rate</span><br><b id="winRate">48%</b></div>
-</div>
-</div>
-<button class="start-btn" onclick="sendSignalToPocket()">Start Trading<br><span style="font-size:11px;font-weight:400;opacity:0.8">Trade cost: Free once a day</span></button>
-<div class="pocket" onclick="alert('Opening Pocket Option...')"><div>📘 Pocket Options<br><span style="font-size:11px;opacity:0.6">View your transactions live on Pocket Option</span></div><div>></div></div>
-<div style="padding:0 15px;margin-top:20px;font-weight:700">Personal Manager</div>
+<div class="toggle">
+<div id="demoToggle" class="active-toggle" onclick="setMode('demo')">DEMO MODE</div>
+<div id="realToggle" onclick="setMode('real')">REAL MODE</div>
+<div id="tournamentToggle" onclick="setMode('tournament')">TOURNAMENT</div>
 </div>
 
-<div id="referralPage" class="page">
-<div class="ref-card"><h3>Invite Friends And Earn Energy</h3><p style="font-size:12px;opacity:0.6">Share your invite link, bring new traders into the app, and track every energy reward inside one flow.</p><div style="display:flex;gap:10px;margin-top:15px"><div style="flex:1;background:#0e122a;padding:10px;border-radius:10px;text-align:center"><b>1</b><br><span style="font-size:11px">TOTAL INVITED</span></div><div style="flex:1;background:#0e122a;padding:10px;border-radius:10px;text-align:center"><b>50</b><br><span style="font-size:11px">TOTAL EARNED</span></div></div><button style="width:100%;margin-top:15px;background:#4a7bff;border:none;padding:12px;border-radius:10px;color:white">Copy Link</button></div>
+<div class="balance-card"><div style="font-size:11px;opacity:.6" id="balLabel">Your demo balance</div><div class="big" id="bigBal">$52,205.72</div><div class="stats"><div>All-time profit<br><b>+$1,549.3%</b></div><div>Trades<br><b id="tradeCount">400</b></div><div>Win rate<br><b>48%</b></div></div>
+<div id="lowBalBox" style="display:none;background:#2a1a1a;border:1px solid #5a2a2a;border-radius:10px;padding:10px;margin-top:15px;font-size:11px"><div style="display:flex;justify-content:space-between"><span>BALANCE TOO LOW</span><b id="lowBal">$0.00</b></div><div style="opacity:.7;margin-top:5px">You have $0.00 available, but even the smallest opening stake needs $3.00</div><button onclick="openDepositModal()" style="width:100%;margin-top:10px;background:#4a7bff;border:none;padding:10px;border-radius:10px;color:#fff;font-weight:700">Open deposit</button></div>
+<div id="tournamentBox" style="display:none;background:#1a234a;border:1px solid #2a4a7a;border-radius:10px;padding:10px;margin-top:15px;font-size:11px"></div>
 </div>
-
-<div id="wheelPage" class="page">
-<h3 style="text-align:center">Spin The Wheel And Win<br>Prizes For 100 Energy</h3>
-<div class="wheel"><button style="background:#ff4d4d;border:none;padding:15px 20px;border-radius:10px;color:white;font-weight:700">ADD ENERGY TO SPIN</button></div>
-<div style="text-align:center;opacity:0.6;font-size:12px">Next Free Spin<br>23:58:30</div>
-</div>
-
-<div id="profilePage" class="page">
-<div class="ref-card" style="display:flex;align-items:center;gap:10px"><img src="https://i.pravatar.cc/40" style="border-radius:50%"><div><b>Success</b><br><span style="font-size:11px;opacity:0.6">ID: 7155312343</span></div><div style="margin-left:auto"><button style="background:#1a234a;border:none;color:white;padding:5px 10px;border-radius:15px;font-size:11px">Settings</button></div></div>
-<div class="pocket"><div>Pocket Options<br><span style="font-size:11px;opacity:0.6">View account credentials</span></div></div>
-<button style="width:calc(100% - 30px);margin:0 15px;background:#ff3b3b;border:none;padding:15px;border-radius:12px;color:white;font-weight:700">Top Up Balance</button>
-<div style="padding:15px"><b>Leaderboard</b><br><span style="font-size:11px;opacity:0.6">Top traders from the last 7 days ranked by profit, trade activity, and win rate.</span></div>
-<div class="leader"><span>#1 User - 7 trades</span><b>100% +$950,628.3</b></div>
-<div class="leader"><span>#2 User - 3 trades</span><b>100% +$33,120.17</b></div>
-<div class="leader"><span>#3 CheryIbybo - 17 trades</span><b>100% +$7,038.45</b></div>
-</div>
-
-<!-- BOTTOM NAV -->
-<div class="nav">
-<div onclick="showPage('referralPage',this)"><div>👥</div>Referral</div>
-<div onclick="showPage('wheelPage',this)"><div>🎡</div>Wheel</div>
-<div class="active" onclick="showPage('tradePage',this)"><div>📈</div>Trade</div>
-<div onclick="showPage('profilePage',this)"><div>👤</div>Profile</div>
-</div>
-
-<script>
-const OWNER_ID=7155312343;
-let uid=0; try{uid=window.Telegram?.WebApp?.initDataUnsafe?.user?.id||0}catch(e){}
-let isOwner=uid==OWNER_ID;
-let selectedStake=1;
-
-function showPage(id,el){
- document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
- document.getElementById(id).classList.add('active');
- document.querySelectorAll('.nav div').forEach(d=>d.classList.remove('active'));
- el.classList.add('active');
-}
-let t=23*3600+58*60+43;
-setInterval(()=>{t--;let h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('timer').innerText=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s},1000);
-
-function sendSignalToPocket(){
- let pair=document.getElementById('pair')?document.getElementById('pair').value:'NZD/USD OTC - 92%';
- let dir=Math.random()>0.5?'UP':'DOWN';
- let data={type:"BOOSTER_SIGNAL",pair:pair,direction:dir,stake:selectedStake,time:new Date().toLocaleTimeString()};
- localStorage.setItem("booster_last_signal",JSON.stringify(data));
- alert("✅ SIGNAL SENT: "+pair+" "+dir+" $"+selectedStake+"\n\nTrade: Free once a day - Approved!");
- if(isOwner){document.getElementById('bigBal').innerText='$'+(52038+Math.random()*100).toFixed(2); document.getElementById('demoBal').innerText=document.getElementById('bigBal').innerText}
-}
-</script>
-</body>
-</html>
